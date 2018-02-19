@@ -15,6 +15,7 @@ public class Slingshot : MonoBehaviour {
     public Vector3 launchPos;
     public GameObject projectile;
     public bool aimingMode;
+    public float timeFired;
 
     private LineRenderer slingLine;
     private Rigidbody projectileRigidbody;
@@ -55,15 +56,18 @@ public class Slingshot : MonoBehaviour {
 
     private void OnMouseDown()
     {
-        //The plyaer has pressed the mouse button while over Slingshot.
-        aimingMode = true;
-        //Instantiate a Projectile.
-        projectile = Instantiate(prefabProjectile) as GameObject;
-        //Start it at the launchPoint.
-        projectile.transform.position = launchPos;
-        //Set it to isKinematic for now.
-        projectileRigidbody = projectile.GetComponent<Rigidbody>();
-        projectileRigidbody.isKinematic = true;        
+        if (Time.time >= timeFired + 3)
+        {
+            //The player has pressed the mouse button while over Slingshot.
+            aimingMode = true;
+            //Instantiate a Projectile.
+            projectile = Instantiate(prefabProjectile) as GameObject;
+            //Start it at the launchPoint.
+            projectile.transform.position = launchPos;
+            //Set it to isKinematic for now.
+            projectileRigidbody = projectile.GetComponent<Rigidbody>();
+            projectileRigidbody.isKinematic = true;
+        }
     }
 
     private void Update()
@@ -101,11 +105,14 @@ public class Slingshot : MonoBehaviour {
         if (Input.GetMouseButtonUp(0))
         {
             //The mouse has been released.
+            timeFired = Time.time;
             aimingMode = false;
             projectileRigidbody.isKinematic = false;
             projectileRigidbody.velocity = -mouseDelta * velocityMult;
             FollowCam.POI = projectile;
             projectile = null;
+            MissionDemolition.ShotFired();
+            ProjectileLine.S.poi = projectile;
             slingLine.enabled = false;
         }
     }
