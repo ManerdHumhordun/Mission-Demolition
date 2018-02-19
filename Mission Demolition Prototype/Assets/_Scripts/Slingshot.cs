@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Slingshot : MonoBehaviour {
-
+    static private Slingshot S;
     //Fields set in the Unity Inspector pane.
     [Header("Set in Inspector")]
     public GameObject prefabProjectile;
@@ -16,15 +16,29 @@ public class Slingshot : MonoBehaviour {
     public GameObject projectile;
     public bool aimingMode;
 
+    private LineRenderer slingLine;
     private Rigidbody projectileRigidbody;
+
+    static public Vector3 LAUNCH_POS
+    {
+        get
+        {
+            if (S == null) return Vector3.zero;
+            return S.launchPos;
+        }
+    }
 
     //Finds the point of launch and sets the halo to be invisible at start.
     private void Awake()
     {
+        S = this;
         Transform launchPointTrans = transform.Find("LaunchPoint");
         launchPoint = launchPointTrans.gameObject;
         launchPoint.SetActive(false);
         launchPos = launchPointTrans.position;
+
+        slingLine = GetComponent<LineRenderer>();
+        slingLine.enabled = false;
     }
 
     //When the player has the mouse in range, make the halo visible.
@@ -49,7 +63,7 @@ public class Slingshot : MonoBehaviour {
         projectile.transform.position = launchPos;
         //Set it to isKinematic for now.
         projectileRigidbody = projectile.GetComponent<Rigidbody>();
-        projectileRigidbody.isKinematic = true;
+        projectileRigidbody.isKinematic = true;        
     }
 
     private void Update()
@@ -79,6 +93,11 @@ public class Slingshot : MonoBehaviour {
         Vector3 projPos = launchPos + mouseDelta;
         projectile.transform.position = projPos;
 
+        //Display slingLine from slingshot to projectile.
+        slingLine.SetPosition(0, launchPos);
+        slingLine.SetPosition(1, projPos);
+        slingLine.enabled = true;
+
         if (Input.GetMouseButtonUp(0))
         {
             //The mouse has been released.
@@ -87,6 +106,7 @@ public class Slingshot : MonoBehaviour {
             projectileRigidbody.velocity = -mouseDelta * velocityMult;
             FollowCam.POI = projectile;
             projectile = null;
+            slingLine.enabled = false;
         }
     }
 }
